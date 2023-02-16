@@ -44,7 +44,6 @@ Timber::$dirname = array('../templates', '../views');
  */
 Timber::$autoescape = false;
 
-
 /**
  * We're going to configure our theme inside of a subclass of Timber\Site
  * You can move this to its own file and include here via php's include("MySite.php")
@@ -60,6 +59,17 @@ class CustomTheme extends Timber\Site
         add_action('init', array($this, 'register_post_types'));
         add_action('init', array($this, 'register_taxonomies'));
         parent::__construct();
+
+        // Gets the parent folder for {{ theme.link }} so we can keep the current folder structure.
+        // Fixes https://github.com/timber/starter-theme/issues/105
+        $theme = new class() extends Timber\Theme
+        {
+            public function link()
+            {
+                return dirname(get_stylesheet_directory_uri());
+            }
+        };
+        $this->theme = $theme;
     }
     /** This is where you can register custom post types. */
     public function register_post_types()
@@ -97,7 +107,7 @@ class CustomTheme extends Timber\Site
         $context['current_url'] = Timber\URLHelper::get_current_url();
         $context['menu'] = new Timber\Menu();
         $context['site'] = $this;
-
+        $context['theme'] = $this->theme;
         return $context;
     }
 
